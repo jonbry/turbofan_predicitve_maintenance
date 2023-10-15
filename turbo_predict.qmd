@@ -1,0 +1,62 @@
+---
+title: "RUL Model Evaluation"
+format: html
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+```
+
+### Import Data
+
+```{r}
+# Import Data
+df_fd001 <- read_delim('~/Documents/turbofan_predicitve_maintenance/CMaps/train_FD003.txt', delim = ' ', col_names = FALSE)
+
+```
+
+### Add names for variables
+
+```{r}
+# Variable known names
+vari <- c('unit', 'time', 'ops1', 'ops2', 'ops3')
+
+# Add names for sensors
+for (i in 1:25){
+   vari <- append(vari, paste('sen', i, sep = ''))
+}
+
+# Change variable names
+colnames(df_fd001) <- vari
+  
+```
+
+### EDA
+
+There should be 100 engines in the train_FD001 data set.
+
+```{r}
+n_distinct(df_fd001$unit)
+```
+
+#### Summary Statistics
+
+#### Units, Time and Operation Settings (ops)
+
+```{r}
+df_fd001 %>%
+  select(unit, time, ops1, ops2, ops3) %>%
+  summary()
+```
+
+We can see from the chart above, the average `time` or cycles, is a little over 139 cycles. The distribution of `ops1` is evenly distributed around the mean, where as `ops2` is skewed to the right. `ops3` on the other hand is uniformly distributed across all engines.
+
+**Sensors**
+
+```{r}
+df_fd001 %>%
+  select(sen1:sen23) %>%
+  summary()
+```
