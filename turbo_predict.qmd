@@ -7,13 +7,18 @@ editor: visual
 ```{r}
 rm(list=ls())
 library(tidyverse)
+library(psych)
 ```
 
 ### Import Data
 
 ```{r}
 # Import Data
-df_fd001 <- read_delim('~/Documents/turbofan_predicitve_maintenance/CMaps/train_FD003.txt', delim = ' ', col_names = FALSE)
+df_fd001 <- read_delim('~/Documents/turbofan_predicitve_maintenance/CMaps/train_FD001.txt', delim = ' ', col_names = FALSE) 
+
+df_fd001 <- 
+  df_fd001 %>%
+  select(1:26)
 
 ```
 
@@ -24,7 +29,7 @@ df_fd001 <- read_delim('~/Documents/turbofan_predicitve_maintenance/CMaps/train_
 vari <- c('unit', 'time', 'ops1', 'ops2', 'ops3')
 
 # Add names for sensors
-for (i in 1:25){
+for (i in 1:23){
    vari <- append(vari, paste('sen', i, sep = ''))
 }
 
@@ -46,17 +51,30 @@ n_distinct(df_fd001$unit)
 #### Units, Time and Operation Settings (ops)
 
 ```{r}
-df_fd001 %>%
-  select(unit, time, ops1, ops2, ops3) %>%
-  summary()
+sumstat1 <- describe(df_fd001[1:5]) %>%
+  select(1, n, mean, sd, median, min, max)
+print(sumstat1, digits = 4)
 ```
-
-We can see from the chart above, the average `time` or cycles, is a little over 139 cycles. The distribution of `ops1` is evenly distributed around the mean, where as `ops2` is skewed to the right. `ops3` on the other hand is uniformly distributed across all engines.
 
 **Sensors**
 
 ```{r}
+sumstat2 <- describe(df_fd001[-(1:5)]) %>%
+  select( n, mean, sd, median, min, max)
+print(sumstat2, digits = 4)
+```
+
+The sensors `sen1`, `sen5`, `sen10`, `sen16`, `sen18`, and `sen19` appear to have the same standard deviation across all rows, and can likely be excluded from the model.
+
+### Estimate Remaining Useful Life (RUL)
+
+The goal of this project is to predict the RUL cycles for engines after their last recorded cycle. Without knowing the relationship between number of cycles and system failure, we'll assume that the relationship is linear. We first should look to see what the maximum number of cycles for each engine:
+
+```{r}
 df_fd001 %>%
-  select(sen1:sen23) %>%
-  summary()
+  group_by(unit) %>%
+  reframe(max_cycle = max(time)) %>%
+  ggplot(aes(x = max_cycle)) +
+  geom_histogram()
+
 ```
